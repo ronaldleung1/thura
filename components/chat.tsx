@@ -80,7 +80,7 @@ export default function Chat() {
       <div className="h-96 overflow-y-auto p-4">
         {messages.length === 0 ? (
           <p className="text-center text-zinc-500 dark:text-zinc-400">
-            Start a conversation with Claude...
+            Start a conversation...
           </p>
         ) : (
           <div className="space-y-4">
