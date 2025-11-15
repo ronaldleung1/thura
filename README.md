@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# API Spending Control
 
-## Getting Started
+**Add any API to Claude, track spending, enforce budgets - all in a simple dashboard**
 
-First, run the development server:
+## Quick Start
+
+### 1. Set up Vercel Postgres
+
+1. Go to [vercel.com/dashboard](https://vercel.com/dashboard)
+2. Create a new Postgres database (Storage → Create Database → Postgres)
+3. Copy all the connection strings to `.env.local`
+
+### 2. Add your Anthropic API key
+
+Add this to `.env.local`:
+```
+ANTHROPIC_API_KEY=your-key-here
+```
+
+### 3. Push the database schema
+
+```bash
+npm run db:push
+```
+
+### 4. Run the app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Demo Flow
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Add a test API (Mapbox Geocoding)
 
-## Learn More
+1. Fill in the form:
+   - **Name:** Mapbox Geocoding
+   - **Endpoint:** `https://api.mapbox.com/geocoding/v5/mapbox.places/{query}.json?access_token={apiKey}`
+   - **API Key:** `pk_xxxxx` (your Mapbox key)
+   - **HTTP Method:** GET
+   - **Cost per Call:** 0.0005
+   - **Budget Limit:** 5.00
+   - **Parameter Schema:** `{"query": "string"}`
+   - **Description:** Get lat/long coordinates for an address
 
-To learn more about Next.js, take a look at the following resources:
+2. Click "Add API"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Test with Claude
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Ask Claude: "Find coordinates for San Francisco, New York, and Tokyo"
 
-## Deploy on Vercel
+Watch:
+- Claude calls Mapbox 3 times
+- Budget tracker updates: $0.0015 / $5.00
+- Results appear in chat
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Test budget enforcement
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Ask: "Now do 10,000 more geocoding calls"
+
+Claude will hit the budget limit and get a 429 error after ~9,997 calls.
+
+## How It Works
+
+1. **Add any API** - Paste endpoint, API key, set budget
+2. **Claude gets access** - APIs automatically become tools
+3. **Budget is enforced** - Proxy blocks calls when budget exceeded
+4. **Track spending** - See real-time spend for each API
+
+## Tech Stack
+
+- **Next.js 14** (App Router)
+- **Vercel Postgres** (Database)
+- **Drizzle ORM** (Type-safe DB queries)
+- **Anthropic SDK** (Claude integration)
+- **Tailwind CSS** (Styling)
+
+## API Routes
+
+- `POST /api/user-apis` - Add new API
+- `GET /api/user-apis` - List all APIs
+- `DELETE /api/user-apis?id=xxx` - Delete API
+- `POST /api/proxy` - Universal proxy with budget enforcement
+- `POST /api/chat` - Chat with Claude (auto-loads tools from DB)
+
+## Production Roadmap
+
+- [ ] Encrypt API keys in database
+- [ ] Add rate limiting per API
+- [ ] Call logs and analytics
+- [ ] Multi-user auth
+- [ ] API marketplace (share configs)
+- [ ] Webhooks for budget alerts
+- [ ] Support for query params, headers, auth types
